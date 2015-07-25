@@ -1,14 +1,14 @@
 {
   "name": "es6-import-sorter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sort imports for ES6 scripts",
   "bin": {
     "es6-import-sorter": "./bin/cli.js"
   },
   "main": "src/import-sorter.js",
   "scripts": {
-    "start": "babel-node src/index.js",
-    "build": "mkdir bin && babel -f bin/import_sorter.js src/index.js"
+    "start": "babel-node src/cli.js",
+    "build": "cd src && babel -d ../bin *.js"
   },
   "keywords": [
     "import",
@@ -31,7 +31,8 @@
   "files": [
     "LICENSE",
     "README.md",
-    "src"
+    "src",
+    "bin"
   ],
   "repository": {
     "type": "git",
