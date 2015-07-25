@@ -1,5 +1,3 @@
-/* @flow */
-import { readFileSync } from 'fs';
 import { parse } from 'acorn';
 import { generate } from 'escodegen';
 import {
@@ -138,9 +136,4 @@ class ImportSorter {
   }
 }
 
-if (process.argv.length < 3) {
-  console.log('Usage: es6_import_sorter [file]');
-} else {
-  const content = readFileSync(process.argv[2]).toString();
-  console.log(new ImportSorter(content).sort());
-}
+export default ImportSorter;

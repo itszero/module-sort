@@ -1,11 +1,14 @@
 {
-  "name": "es6_import_sorter",
-  "version": "1.0.0",
+  "name": "es6-import-sorter",
+  "version": "0.0.1",
   "description": "Sort imports for ES6 scripts",
-  "main": "src/index.js",
+  "bin": {
+    "es6-import-sorter": "./bin/cli.js"
+  },
+  "main": "src/import-sorter.js",
   "scripts": {
     "start": "babel-node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "mkdir bin && babel -f bin/import_sorter.js src/index.js"
   },
   "keywords": [
     "import",
@@ -24,5 +27,14 @@
     "babel-eslint": "^3.1.26",
     "eslint": "^0.24.1",
     "eslint-config-standard": "^3.4.1"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itszero/es6-import-sorter"
   }
 }
