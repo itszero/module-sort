@@ -1,0 +1,14 @@
+{
+  // babel parser to support ES features
+  "parser": "babel-eslint",
+  // based on https://github.com/feross/standard
+  "extends": [ "standard" ],
+  "rules": {
+    // overrides of the standard style
+    "curly": [2, "all"],
+    "max-len": [2, 80, 4],
+    "semi": [2, "always"],
+    "space-before-function-paren": [2, {"anonymous": "always", "named": "never"}],
+    "wrap-iife": [2, "outside"],
+  }
+}
