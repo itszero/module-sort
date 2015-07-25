@@ -2,82 +2,64 @@
 import { readFileSync } from 'fs';
 import { parse } from 'acorn';
 import { generate } from 'escodegen';
+import {
+  stringSplice, maxBy, minBy
+} from './utils';
 
 class ImportSorter {
   constructor(input: String) {
-    this.input = input.split('\n');
+    this._input = input;
   }
 
   sort() : String {
-    this.output = this.input;
+    this._output = this._input.slice();
     const importSections = this._findImportSections();
     importSections.forEach((section, idx) => {
-      const imports = this._parseImports(
-        this._extractSection(section).join('')
-      );
-
-      if (imports.length === 0) {
-        return;
-      }
-
-      const sortedImports = this._sortImports(imports);
+      const sortedImports = this._sortImports(section);
       const newSectionContent = this._writeImports(sortedImports);
       const offset = this._replaceSection(section, newSectionContent);
+
+      /* calculate new offset for rest nodes */
       for (let i = idx + 1; i < importSections.length; i++) {
-        importSections[i].start += offset;
-        importSections[i].end += offset;
+        for (let j = 0; j < importSections[i].length; j++) {
+          importSections[i][j].start += offset;
+          importSections[i][j].end += offset;
+        }
       }
     });
 
-    return this.output.join('\n');
+    return this._output;
   }
 
   _findImportSections() {
-    let sections = [];
-    let section = null;
-
-    this.input.forEach((line, idx) => {
-      if (line.trim().match(/^import[^;]+;/)) {
-        if (!section) {
-          section = {start: idx, end: idx + 1};
-          sections.push(section);
-        } else {
-          section.end = idx + 1;
-        }
-      } else {
-        if (line.trim().match(/^import /)) {
-          console.log(`Line ${idx + 1}: multi-line import is unsupported.`);
-        }
-        if (section) {
-          section = null;
-        }
-      }
-    });
-
-    return sections;
-  }
-
-  _extractSection(section) {
-    return this.input.slice().slice(section.start, section.end);
-  }
-
-  _parseImports(section) {
     let ast;
     try {
-      ast = parse(section, {
+      ast = parse(this._input, {
         ecmaVersion: 6, sourceType: 'module'
       });
     } catch (e) {
       console.log('Error occured during parsing:');
       console.log(e);
-      console.log('Code:');
-      console.log(section);
       return [];
     }
 
-    return ast.body.filter((n) =>
-      n.type === 'ImportDeclaration'
-    );
+    return ast.body.reduce((collect, node) => {
+      if (node.type === 'ImportDeclaration') {
+        if (collect.length === 0) {
+          collect.push([node]);
+        } else {
+          const lastCollection = collect[collect.length - 1];
+          const lastNode = lastCollection[lastCollection.length - 1];
+          if (this._input.slice(lastNode.end, node.start).trim() === '') {
+            collect[collect.length - 1].push(node);
+          } else {
+            collect.push([node]);
+          }
+        }
+      }
+
+      return collect;
+    }, []).filter((c) => c.length > 0);
   }
 
   _sortImports(imports) {
@@ -140,16 +122,19 @@ class ImportSorter {
   _writeImports(imports) {
     return imports.map((i) => {
       return generate(i);
-    });
+    }).join('\n');
   }
 
   _replaceSection(section, newContent) {
-    this.output.splice(
-      section.start,
-      section.end - section.start,
-      ...newContent
+    const start = minBy(section, (s) => s.start);
+    const end = maxBy(section, (s) => s.end);
+    this._output = stringSplice(
+      this._output,
+      start,
+      end - start,
+      newContent
     );
-    return (newContent.length - section.end + section.start);
+    return (newContent.length - (end - start));
   }
 }
 
