@@ -4,6 +4,7 @@
   "description": "Sort imports for ES6 scripts",
   "main": "index.js",
   "scripts": {
+    "start": "babel-node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -15,6 +16,11 @@
   "license": "MIT",
   "dependencies": {
     "acorn": "^2.1.0",
+    "babel-runtime": "^5.8.5",
+    "escodegen": "^1.6.1"
+  },
+  "devDependencies": {
+    "babel": "^5.8.5",
     "babel-eslint": "^3.1.26",
     "eslint": "^0.24.1",
     "eslint-config-standard": "^3.4.1"

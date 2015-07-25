@@ -1,6 +1,7 @@
 /* @flow */
 import { readFileSync } from 'fs';
 import { parse } from 'acorn';
+import { generate } from 'escodegen';
 
 class ImportSorter {
   constructor(input: String) {
@@ -39,15 +40,15 @@ class ImportSorter {
       if (line.trim().match(/^import[^;]+;/)) {
         if (!section) {
           section = {start: idx, end: idx + 1};
+          sections.push(section);
         } else {
           section.end = idx + 1;
         }
       } else {
         if (line.trim().match(/^import /)) {
-          console.log(`Line ${idx}: multi-line import is unsupported.`);
+          console.log(`Line ${idx + 1}: multi-line import is unsupported.`);
         }
         if (section) {
-          sections.push({...section});
           section = null;
         }
       }
@@ -67,49 +68,27 @@ class ImportSorter {
         ecmaVersion: 6, sourceType: 'module'
       });
     } catch (e) {
+      console.log('Error occured during parsing:');
       console.log(e);
+      console.log('Code:');
+      console.log(section);
       return [];
     }
 
-    let result = [];
-    ast.body.forEach((node) => {
-      if (node.type !== 'ImportDeclaration') {
-        return;
-      }
-
-      const mapFunc = (n) => {
-        return {
-          imported: n.imported && n.imported.name,
-          local: n.local && n.local.name
-        };
-      };
-
-      const source = node.source.value;
-      const astSpecifiers = node.specifiers;
-      const defaults =
-        astSpecifiers.filter((n) => n.type === 'ImportDefaultSpecifier')
-          .map(mapFunc);
-      const specifiers =
-        astSpecifiers.filter((n) => n.type === 'ImportSpecifier')
-          .map(mapFunc);
-
-      result.push({
-        source,
-        defaults,
-        specifiers
-      });
-    });
-
-    return result;
+    return ast.body.filter((n) =>
+      n.type === 'ImportDeclaration'
+    );
   }
 
   _sortImports(imports) {
     function specifierSortKey(s) {
-      return s ? (s.local || s.imported) : '';
+      const importedName = s.imported && s.imported.name.toLowerCase();
+      const localName = s.local && s.local.name.toLowerCase();
+      return s ? (localName || importedName) : '';
     }
 
     function importSortKey(i) {
-      const key = i.defaults[0] || i.specifiers[0];
+      const key = i.specifiers[0];
       return specifierSortKey(key);
     }
 
@@ -123,14 +102,32 @@ class ImportSorter {
       }
     }
 
-    imports.forEach((i) => {
-      i.defaults.sort((a, b) => strCompare(
+    function specifierSortFunc(a, b) {
+      return strCompare(
         specifierSortKey(a), specifierSortKey(b)
-      ));
+      );
+    }
 
-      i.specifiers.sort((a, b) => strCompare(
-        specifierSortKey(a), specifierSortKey(b)
-      ));
+    imports.forEach((i) => {
+      const defaults =
+        i.specifiers
+          .filter((n) => n.type === 'ImportDefaultSpecifier')
+          .sort(specifierSortFunc)
+          .map((n) => { /* match escodegen AST */
+            n.id = n.local;
+            return n;
+          });
+
+      const specifiers =
+        i.specifiers
+          .filter((n) => n.type === 'ImportSpecifier')
+          .sort(specifierSortFunc)
+          .map((n) => { /* match escodegen AST */
+            n.id = n.local;
+            return n;
+          });
+
+      i.specifiers = defaults.concat(specifiers);
     });
 
     imports.sort((a, b) => strCompare(
@@ -142,18 +139,7 @@ class ImportSorter {
 
   _writeImports(imports) {
     return imports.map((i) => {
-      const defaults = i.defaults.map((d) => d.local).join(', ');
-      let specifiers = i.specifiers.map((d) =>
-        d.imported === d.local ? `${d.local}` : `${d.imported} as ${d.local}`
-      ).join(', ');
-      if (specifiers !== '') {
-        specifiers = `{ ${specifiers} }`;
-        if (defaults !== '') {
-          specifiers = ', ' + specifiers;
-        }
-      }
-
-      return `import ${defaults}${specifiers} from ${i.source};`;
+      return generate(i);
     });
   }
 
@@ -163,7 +149,7 @@ class ImportSorter {
       section.end - section.start,
       ...newContent
     );
-    return (newContent.length - section.end - section.start + 1);
+    return (newContent.length - section.end + section.start);
   }
 }
 
