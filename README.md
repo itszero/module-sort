@@ -12,4 +12,4 @@ You can install es6-import-sorter using npm:
 
 The CLI tool takes one file and print the import-sorted file on STDOUT:
 
-    import-sorter test.js
+    es6-import-sorter test.js
