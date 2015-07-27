@@ -1,5 +1,7 @@
 # es6-import-sorter
 
+[![npm version](http://img.shields.io/npm/v/es6-import-sorter.svg)](https://npmjs.org/package/es6-import-sorter) [![Dependency Status](https://david-dm.org/angus-c/es6-import-sorter.svg)](https://david-dm.org/angus-c/es6-import-sorter.svg)
+
 An ECMAScript 6 syntax aware import sorter.
 
 ## Installation
