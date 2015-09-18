@@ -1,4 +1,4 @@
-import { parse } from 'acorn';
+import { parse } from 'acorn-jsx';
 import { generate } from 'escodegen';
 import {
   stringSplice, maxBy, minBy
@@ -33,7 +33,7 @@ class ImportSorter {
     let ast;
     try {
       ast = parse(this._input, {
-        ecmaVersion: 6, sourceType: 'module'
+          ecmaVersion: 6, sourceType: 'module', plugins: { jsx: true }
       });
     } catch (e) {
       console.log('Error occured during parsing:');
