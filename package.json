@@ -1,32 +1,37 @@
 {
-  "name": "es6-import-sorter",
-  "version": "0.0.2",
+  "name": "module-sort",
+  "version": "0.0.1",
   "description": "Sort imports for ES6 scripts",
   "bin": {
-    "es6-import-sorter": "./bin/cli.js"
+    "module-sort": "./src/cli.js"
   },
   "main": "src/import-sorter.js",
   "scripts": {
     "start": "babel-node src/cli.js",
-    "build": "cd src && babel -d ../bin *.js"
+    "build": "cd src && babel -d ../bin *.js",
+    "test": "jest"
   },
   "keywords": [
     "import",
     "sort",
-    "es6"
+    "es6",
+    "modules"
   ],
   "author": "Zero Cho <itszero@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "acorn": "^2.1.0",
+    "acorn": "^3.0.2",
     "babel-runtime": "^5.8.5",
-    "escodegen": "^1.6.1"
+    "escodegen": "^1.8.0"
   },
   "devDependencies": {
     "babel": "^5.8.5",
     "babel-eslint": "^3.1.26",
     "eslint": "^0.24.1",
-    "eslint-config-standard": "^3.4.1"
+    "eslint-config-standard": "^3.4.1",
+    "jest": "^0.1.40",
+    "jest-babel-preprocessor": "^0.3.0",
+    "jest-cli": "^0.8.2"
   },
   "files": [
     "LICENSE",
@@ -36,6 +41,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/itszero/es6-import-sorter"
+    "url": "https://github.com/itszero/module-sort"
+  },
+  "jest": {
+    "scriptPreprocessor": "<rootDir>/node_modules/jest-babel-preprocessor/preprocessor.js",
+    "cacheDirectory": "/tmp/jest_cache",
+    "unmockedModulePathPatterns": []
   }
 }

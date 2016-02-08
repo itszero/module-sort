@@ -1,23 +1,33 @@
+/* @flow */
+
 import { parse } from 'acorn';
 import { generate } from 'escodegen';
 import {
   stringSplice, maxBy, minBy
 } from './utils';
 
+type ASTNode = {type: string, start: number, end: number, specifiers: Array<ASTSpecifierNode>};
+type ASTSpecifierNode = {type: string, id?: {name: string}, local?: {name: string}};
+type ImportSection = Array<ASTNode>;
+
 class ImportSorter {
-  constructor(input: String) {
+  _input: string;
+  _output: string;
+
+  constructor(input: string) {
     this._input = input;
   }
 
-  sort() : String {
+  sort() : string {
     this._output = this._input.slice();
     const importSections = this._findImportSections();
+
     importSections.forEach((section, idx) => {
       const sortedImports = this._sortImports(section);
       const newSectionContent = this._writeImports(sortedImports);
       const offset = this._replaceSection(section, newSectionContent);
 
-      /* calculate new offset for rest nodes */
+      /* calculate new offset for the rest of nodes */
       for (let i = idx + 1; i < importSections.length; i++) {
         for (let j = 0; j < importSections[i].length; j++) {
           importSections[i][j].start += offset;
@@ -29,7 +39,7 @@ class ImportSorter {
     return this._output;
   }
 
-  _findImportSections() {
+  _findImportSections(): Array<ImportSection> {
     let ast;
     try {
       ast = parse(this._input, {
@@ -41,14 +51,16 @@ class ImportSorter {
       return [];
     }
 
-    return ast.body.reduce((collect, node) => {
+    return ast.body.reduce((collect: Array<ImportSection>, node: ASTNode) => {
       if (node.type === 'ImportDeclaration') {
         if (collect.length === 0) {
           collect.push([node]);
         } else {
           const lastCollection = collect[collect.length - 1];
           const lastNode = lastCollection[lastCollection.length - 1];
-          if (this._input.slice(lastNode.end, node.start).trim() === '') {
+          const strBetween = this._input.slice(lastNode.end, node.start);
+          const newLineCount = strBetween.split('').filter((c) => c === '\n').length;
+          if (newLineCount < 2) {
             collect[collect.length - 1].push(node);
           } else {
             collect.push([node]);
@@ -60,7 +72,7 @@ class ImportSorter {
     }, []).filter((c) => c.length > 0);
   }
 
-  _sortImports(imports) {
+  _sortImports(imports: ImportSection) : ImportSection {
     function specifierSortKey(s) {
       const importedName = s.imported && s.imported.name.toLowerCase();
       const localName = s.local && s.local.name.toLowerCase();
@@ -117,13 +129,13 @@ class ImportSorter {
     return imports;
   }
 
-  _writeImports(imports) {
+  _writeImports(imports: Array<Object>): string {
     return imports.map((i) => {
       return generate(i);
     }).join('\n');
   }
 
-  _replaceSection(section, newContent) {
+  _replaceSection(section: ImportSection, newContent: string): number {
     const start = minBy(section, (s) => s.start);
     const end = maxBy(section, (s) => s.end);
     this._output = stringSplice(
