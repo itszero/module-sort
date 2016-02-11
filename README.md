@@ -1,6 +1,6 @@
 # module-sort
 
-[![npm version](http://img.shields.io/npm/v/module-sortsvg)](https://npmjs.org/package/module-sort) [![Dependency Status](https://david-dm.org/angus-c/module-sort.svg)](https://david-dm.org/itszero/module-sort.svg)
+[![npm version](http://img.shields.io/npm/v/module-sort.svg)](https://npmjs.org/package/module-sort) [![Dependency Status](https://david-dm.org/itszero/module-sort.svg)](https://david-dm.org/itszero/module-sort)
 
 An ECMAScript 6 syntax aware import sorter.
 
