@@ -1,6 +1,6 @@
 {
   "name": "module-sort",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Sort imports for ES6 scripts",
   "bin": {
     "module-sort": "./src/cli.js"
